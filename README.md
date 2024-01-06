@@ -11,3 +11,6 @@ The user inputs a 1/x chance for entry and exit per second.
 
 By default, it will enter a trade 1/15 seconds and exit a trade 1/60 seconds. 
 ![Example of Random Entries](https://cdn.discordapp.com/attachments/1123793132480372736/1192305868570632232/image.png?ex=65a8985f&is=6596235f&hm=bebca135814b9bd62fb24fad5c745503c3e300e171fdaf2499673b669afccf61&)
+
+### CBR/ATR Bar Color
+Based on the Current Bar Range vs Average True Range function. It will highlight the current bar if it exceeds a certain threshold provided. 
