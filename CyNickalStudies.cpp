@@ -203,41 +203,6 @@ SCSFExport scsf_RandomEntries(SCStudyGraphRef sc)
 
 }
 
-SCSFExport scsf_TestFunction(SCStudyGraphRef sc)
-{
-	// declares inputs and subgraphs
-	SCSubgraphRef Subgraph_Test = sc.Subgraph[0];
-	SCSubgraphRef Subgraph_StaticLine = sc.Subgraph[1];
-
-	if (sc.SetDefaults) {
-		sc.GraphName = "(WIP) Test Function";
-		sc.StudyDescription = "This is a function that will be used for testing. Ignore it.";
-		sc.AutoLoop = 1;
-
-		Subgraph_Test.Name = "Test";
-
-		Subgraph_StaticLine.Name = "Static Line";
-
-		return;
-	}
-
-	Subgraph_StaticLine[sc.Index] = 1;
-
-	if (sc.Index % 2)
-	{
-		Subgraph_Test[sc.Index] = 1;
-	}
-	else
-	{
-		Subgraph_Test[sc.Index] = 0;
-	}
-	
-
-
-
-
-}
-
 SCSFExport scsf_CurrentBarRangevsAverageTrueRangeBarColor(SCStudyGraphRef sc)
 {
 	// declare subgraphs
