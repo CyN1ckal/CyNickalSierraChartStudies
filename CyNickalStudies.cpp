@@ -202,3 +202,96 @@ SCSFExport scsf_RandomEntries(SCStudyGraphRef sc)
 
 
 }
+
+SCSFExport scsf_TestFunction(SCStudyGraphRef sc)
+{
+	// declares inputs and subgraphs
+	SCSubgraphRef Subgraph_Test = sc.Subgraph[0];
+	SCSubgraphRef Subgraph_StaticLine = sc.Subgraph[1];
+
+	if (sc.SetDefaults) {
+		sc.GraphName = "(WIP) Test Function";
+		sc.StudyDescription = "This is a function that will be used for testing. Ignore it.";
+		sc.AutoLoop = 1;
+
+		Subgraph_Test.Name = "Test";
+
+		Subgraph_StaticLine.Name = "Static Line";
+
+		return;
+	}
+
+	Subgraph_StaticLine[sc.Index] = 1;
+
+	if (sc.Index % 2)
+	{
+		Subgraph_Test[sc.Index] = 1;
+	}
+	else
+	{
+		Subgraph_Test[sc.Index] = 0;
+	}
+	
+
+
+
+
+}
+
+SCSFExport scsf_CurrentBarRangevsAverageTrueRangeBarColor(SCStudyGraphRef sc)
+{
+	// declare subgraphs
+	SCSubgraphRef Subgraph_CBR = sc.Subgraph[0];
+	SCSubgraphRef Subgraph_ATR = sc.Subgraph[1];
+	SCSubgraphRef Subgraph_CBRATR = sc.Subgraph[2];
+	SCSubgraphRef Subgraph_AboveThreshold = sc.Subgraph[3];
+
+	// declare inputs
+	SCInputRef Input_ATRLength = sc.Input[0];
+	SCInputRef Input_ATRMAType = sc.Input[1];
+	SCInputRef Input_BarColorThreshold = sc.Input[2];
+
+	if (sc.SetDefaults)
+	{
+		// sc settings
+		sc.GraphName = "CBR/ATR Bar Color";
+		sc.StudyDescription = "This study highlights a given bar if it is over a certain CBR/ATR threshold.";
+		sc.AutoLoop = 1;
+		sc.GraphRegion = 0;
+
+		// subgraphs
+		Subgraph_CBR.Name = "CBR";
+		Subgraph_CBR.DrawStyle = DRAWSTYLE_IGNORE;
+
+		Subgraph_ATR.Name = "ATR";
+		Subgraph_ATR.DrawStyle = DRAWSTYLE_IGNORE;
+
+		Subgraph_CBRATR.Name = "CBR / ATR";
+		Subgraph_CBRATR.DrawStyle = DRAWSTYLE_IGNORE;
+
+		Subgraph_AboveThreshold.Name = "Above Threshold";
+		Subgraph_AboveThreshold.DrawStyle = DRAWSTYLE_COLORBAR;
+
+		// inputs
+		Input_ATRLength.Name = "ATR Length";
+		Input_ATRLength.SetInt(14);
+		Input_ATRLength.SetDescription("The length of the moving average in the ATR calculation.");
+
+		Input_ATRMAType.Name = "ATR Moving Average Type";
+		Input_ATRMAType.SetMovAvgType(MOVAVGTYPE_SIMPLE);
+		Input_ATRMAType.SetDescription("The type of moving average to be used in ATR calculation.");
+
+		Input_BarColorThreshold.Name = "Bar Color Threshold";
+		Input_BarColorThreshold.SetFloatLimits(0.0, FLT_MAX);
+		Input_BarColorThreshold.SetFloat(1.5);
+
+		return;
+	}
+
+	// calculating CBR, ATR, and CBR/ATR
+	Subgraph_CBR[sc.Index] = (sc.High[sc.Index] - sc.Low[sc.Index]);
+	sc.ATR(sc.BaseDataIn, Subgraph_ATR, Input_ATRLength.GetInt(), Input_ATRMAType.GetMovAvgType());
+	Subgraph_CBRATR[sc.Index] = Subgraph_CBR[sc.Index] / Subgraph_ATR[sc.Index];
+
+	Subgraph_AboveThreshold[sc.Index] = Subgraph_CBRATR[sc.Index] > Input_BarColorThreshold.GetFloat();
+}
