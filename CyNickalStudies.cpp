@@ -186,20 +186,7 @@ SCSFExport scsf_RandomEntries(SCStudyGraphRef sc)
 			}
 		}
 
-		// log stuff
-		std::string s = std::to_string(seconds);
-		char const* pchar = s.c_str();
-		sc.AddMessageToLog(pchar, 1);
-
-
 	}
-
-	
-
-
-
-
-
 
 }
 
@@ -259,4 +246,97 @@ SCSFExport scsf_CurrentBarRangevsAverageTrueRangeBarColor(SCStudyGraphRef sc)
 	Subgraph_CBRATR[sc.Index] = Subgraph_CBR[sc.Index] / Subgraph_ATR[sc.Index];
 
 	Subgraph_AboveThreshold[sc.Index] = Subgraph_CBRATR[sc.Index] > Input_BarColorThreshold.GetFloat();
+}
+
+SCSFExport scsf_CBRATRTextDrawing(SCStudyGraphRef sc)
+{
+	// declare subgraphs
+	SCSubgraphRef Subgraph_CBR = sc.Subgraph[0];
+	SCSubgraphRef Subgraph_ATR = sc.Subgraph[1];
+	SCSubgraphRef Subgraph_CBRATR = sc.Subgraph[2];
+
+	// declare inputs
+	SCInputRef Input_ATRLength = sc.Input[0];
+	SCInputRef Input_ATRMAType = sc.Input[1];
+
+	if (sc.SetDefaults)
+	{
+		// sc settings
+		sc.GraphName = "CBR/ATR Text Drawing";
+		sc.StudyDescription = "Displays a text drawing showing the current CBR/ATR.";
+		sc.AutoLoop = 1;
+		sc.GraphRegion = 0;
+
+
+
+		// subgraphs
+		Subgraph_CBR.Name = "CBR";
+		Subgraph_CBR.DrawStyle = DRAWSTYLE_IGNORE;
+
+		Subgraph_ATR.Name = "ATR";
+		Subgraph_ATR.DrawStyle = DRAWSTYLE_IGNORE;
+
+		Subgraph_CBRATR.Name = "CBR / ATR";
+		Subgraph_CBRATR.DrawStyle = DRAWSTYLE_IGNORE;
+
+		// inputs
+		Input_ATRLength.Name = "ATR Length";
+		Input_ATRLength.SetInt(14);
+		Input_ATRLength.SetDescription("The length of the moving average in the ATR calculation.");
+
+		Input_ATRMAType.Name = "ATR Moving Average Type";
+		Input_ATRMAType.SetMovAvgType(MOVAVGTYPE_SIMPLE);
+		Input_ATRMAType.SetDescription("The type of moving average to be used in ATR calculation.");
+
+
+		return;
+	}
+
+	// calculating CBR, ATR, and CBR/ATR
+	Subgraph_CBR[sc.Index] = (sc.High[sc.Index] - sc.Low[sc.Index]);
+	sc.ATR(sc.BaseDataIn, Subgraph_ATR, Input_ATRLength.GetInt(), Input_ATRMAType.GetMovAvgType());
+
+	float CBRATR = Subgraph_CBR[sc.Index] / Subgraph_ATR[sc.Index];
+
+	Subgraph_CBRATR[sc.Index] = CBRATR;
+
+	// setting up persistent int
+	int& TextLineNumber = sc.GetPersistentInt(2);
+
+	// clear persistent ints on recalculation
+	if (sc.IsFullRecalculation && sc.Index == 0) TextLineNumber = 0;
+
+	// if no text drawing, create one
+	if (TextLineNumber == 0)
+	{
+		s_UseTool TextTool;
+		TextTool.Clear();
+
+		TextTool.DrawingType = DRAWING_TEXT;
+		TextTool.BeginValue = 100;
+		TextTool.FontBold = true;
+		TextTool.FontSize = 16;
+		TextTool.Color = RGB(255, 165, 0);
+		TextTool.FontBackColor = RGB(0, 0, 0);
+		TextTool.UseRelativeVerticalValues = true;
+		TextTool.EndDateTime = 150;
+		TextTool.Text.Format("%.3g", CBRATR);
+		TextTool.Text.Append(" CBR/ATR");
+
+		sc.UseTool(TextTool);
+
+		TextLineNumber = TextTool.LineNumber;
+	}
+	else // drawing exists, update text drawing
+	{
+		s_UseTool TextTool;
+		TextTool.Text.Format("%.3g", CBRATR);
+		TextTool.Text.Append(" CBR/ATR");
+		TextTool.LineNumber = TextLineNumber;
+
+		sc.UseTool(TextTool);
+	}
+
+
+
 }
