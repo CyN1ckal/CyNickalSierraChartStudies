@@ -304,8 +304,11 @@ SCSFExport scsf_CBRATRTextDrawing(SCStudyGraphRef sc)
 	int& TextLineNumber = sc.GetPersistentInt(2);
 
 	// clear persistent ints on recalculation
-	if (sc.IsFullRecalculation && sc.Index == 0) TextLineNumber = 0;
-
+	if (sc.IsFullRecalculation && sc.Index == 0)
+	{
+		sc.DeleteUserDrawnACSDrawing(sc.ChartNumber, TextLineNumber);
+		TextLineNumber = 0;
+	}
 	// if no text drawing, create one
 	if (TextLineNumber == 0)
 	{
@@ -322,6 +325,7 @@ SCSFExport scsf_CBRATRTextDrawing(SCStudyGraphRef sc)
 		TextTool.EndDateTime = 150;
 		TextTool.Text.Format("%.3g", CBRATR);
 		TextTool.Text.Append(" CBR/ATR");
+		TextTool.AddAsUserDrawnDrawing = 1;
 
 		sc.UseTool(TextTool);
 
@@ -333,6 +337,7 @@ SCSFExport scsf_CBRATRTextDrawing(SCStudyGraphRef sc)
 		TextTool.Text.Format("%.3g", CBRATR);
 		TextTool.Text.Append(" CBR/ATR");
 		TextTool.LineNumber = TextLineNumber;
+		TextTool.AddAsUserDrawnDrawing = 1;
 
 		sc.UseTool(TextTool);
 	}
