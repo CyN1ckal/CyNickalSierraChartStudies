@@ -17,5 +17,5 @@ Based on the Current Bar Range vs Average True Range function. It will highlight
 ![Example of CBR/ATR Bar Color](https://cdn.discordapp.com/attachments/1123793132480372736/1193232504639995924/NQH24_FUT_CMEM_1_Min_1_2024-01-06_08_39_37.176.png?ex=65abf75e&is=6599825e&hm=3e414453cc6a9c3f1187fda67bdcc0e10e327ac114cdbc44e4394b77164eb8f7&)
 
 ### CBR/ATR Text Drawing
-Same calculations and inputs as the original CBR/ATR, but displayed differently. The current bar's CBR/ATR is displayed in the top left of the main price region in text. 
+Same calculations and inputs as the original CBR/ATR, but displayed differently. By default, the current bar's CBR/ATR is displayed in the top left of the main price region in text. You can move where the text is displayed by clicking and moving it. You can change other properties of the drawing just as you can with user-drawn drawings; Just right click and open the properties.
 ![Example of CBR/ATR Text Drawing](https://cdn.discordapp.com/attachments/804797697851654164/1194132746294009881/image.png?ex=65af3dc8&is=659cc8c8&hm=87e2af8d02701f0ec9773abd168b0e17e995eda42885ff8e36e2803ab6307d3a&)
