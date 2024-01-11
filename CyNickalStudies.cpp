@@ -301,7 +301,7 @@ SCSFExport scsf_CBRATRTextDrawing(SCStudyGraphRef sc)
 	Subgraph_CBRATR[sc.Index] = CBRATR;
 
 	// setting up persistent int
-	int& TextLineNumber = sc.GetPersistentInt(2);
+	int& TextLineNumber = sc.GetPersistentInt(1);
 
 	// clear persistent ints on recalculation
 	if (sc.IsFullRecalculation && sc.Index == 0)
@@ -341,7 +341,83 @@ SCSFExport scsf_CBRATRTextDrawing(SCStudyGraphRef sc)
 
 		sc.UseTool(TextTool);
 	}
+}
 
+//This is the basic framework of a study function.
+SCSFExport scsf_DrawMaxLossLine(SCStudyGraphRef sc)
+{
+	// Inputs
+	SCInputRef Input_MaxLossAmount = sc.Input[0];
+	// Subgraphs
+	SCSubgraphRef Subgraph_MaxLossLine = sc.Subgraph[0];
 
+	// reset persistent on recalc
+	if (sc.IsFullRecalculation && sc.Index == 1)
+	{
+		sc.SetPersistentInt(10, 0);
+	}
+
+	if (sc.SetDefaults)
+	{		
+		// basic settings
+		sc.GraphName = "Draw Max Loss Line";
+		sc.StudyDescription = "This study will display a line at predetermined risk level based off your current position.";
+		sc.AutoLoop = 1;  // Automatic looping is enabled.
+		sc.GraphRegion = 0;
+		sc.ScaleRangeType = SCALE_SAMEASREGION;
+		sc.DrawZeros = 1;
+
+		// set inputs
+		Input_MaxLossAmount.Name = "Max Loss Amount ($)";
+		Input_MaxLossAmount.SetFloat(1000);
+		Input_MaxLossAmount.SetFloatLimits(0.1, FLT_MAX);
+	
+		// set subgraphs
+		Subgraph_MaxLossLine.Name = "Max Loss Line";
+		Subgraph_MaxLossLine.DrawStyle = DRAWSTYLE_LINE_AT_LAST_BAR_LEFT_TO_RIGHT;
+		Subgraph_MaxLossLine.PrimaryColor = RGB(255, 0, 0);
+		Subgraph_MaxLossLine.LineLabel = LL_DISPLAY_NAME | LL_NAME_ALIGN_FAR_RIGHT | LL_NAME_ALIGN_ABOVE | LL_DISPLAY_VALUE | LL_VALUE_ALIGN_FAR_RIGHT | LL_VALUE_ALIGN_BELOW;
+		Subgraph_MaxLossLine.LineWidth = 4;
+		Subgraph_MaxLossLine.UseTransparentLabelBackground = 1;
+
+		return;
+	}
+	
+	// getting position data
+	s_SCPositionData PositionData;
+	sc.GetTradePosition(PositionData);
+
+	// persistent int
+	int& InPosition = sc.GetPersistentInt(2);
+
+	if (PositionData.PositionQuantity != 0)
+	{
+		// setting persistent int
+		InPosition = 1;
+
+		// calculating ticks until max loss
+		int TicksUntilMaxLoss = Input_MaxLossAmount.GetFloat() / sc.CurrencyValuePerTick;
+
+		// calculating the max loss line depending on whether long or short
+		if (PositionData.PositionQuantity > 0)
+			Subgraph_MaxLossLine[sc.Index] = PositionData.AveragePrice - ( sc.TicksToPriceValue(TicksUntilMaxLoss) / abs(PositionData.PositionQuantity));
+		if (PositionData.PositionQuantity < 0)
+			Subgraph_MaxLossLine[sc.Index] = PositionData.AveragePrice + (sc.TicksToPriceValue(TicksUntilMaxLoss) / abs(PositionData.PositionQuantity));
+	}
+	else
+	{
+		// have to do this extra check in order to remove the line label from the screen after being in a position.
+		// otherwise the line itself will go back to 0, but the label floats around.
+		if (InPosition == 1)
+		{
+			sc.FlagFullRecalculate = 1;
+			InPosition = 0;
+		}
+
+		// if not in a position, put line at 0.
+		Subgraph_MaxLossLine[sc.Index] = 0;
+	}
 
 }
+
+
